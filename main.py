@@ -1,10 +1,40 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 tasks = [
-    {"id": 1, "title": "Learn FastAPI"},
-    {"id": 2, "title": "Build CRUD API"}
+    {
+    "id": 1,
+    "title": "Learn FastAPI",
+    "description": "Complete FastAPI basics and routing",
+    "dateTime" :"2026-01-01T12:00:00"},
+ 
+    {
+    "id": 2,
+    "title": "Build CRUD API",
+    "description": "Implement Create Read Update Delete operations",
+    "dateTime" :"2026-21-0T12:00:00"
+},
+
+{
+    "id": 3,
+    "title": "Deployment",
+    "description": "Deploy application on Render",
+    "dateTime" :"2026-15-01T12:00:00"
+}
+
+
+
 ]
 
 # GET All Tasks
