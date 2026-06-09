@@ -17,23 +17,21 @@ tasks = [
     "id": 1,
     "title": "Learn FastAPI",
     "description": "Complete FastAPI basics and routing",
-    "dateTime" :"2026-01-01T12:00:00"},
+    "dateTime" :"09-06-2026"},
  
     {
     "id": 2,
     "title": "Build CRUD API",
     "description": "Implement Create Read Update Delete operations",
-    "dateTime" :"2026-21-0T12:00:00"
+    "dateTime" :"10-06-2026"
 },
 
 {
     "id": 3,
     "title": "Deployment",
     "description": "Deploy application on Render",
-    "dateTime" :"2026-15-01T12:00:00"
+    "dateTime" :"11-06-2026"
 }
-
-
 
 ]
 
