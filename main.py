@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
+from database import tasks_collection
+from bson import ObjectId 
 
 app = FastAPI()
 
@@ -12,71 +13,52 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-tasks = [
-    {
-    "id": 1,
-    "title": "Learn FastAPI",
-    "description": "Complete FastAPI basics and routing",
-    "dateTime" :"09-06-2026"},
- 
-    {
-    "id": 2,
-    "title": "Build CRUD API",
-    "description": "Implement Create Read Update Delete operations",
-    "dateTime" :"10-06-2026"
-},
 
-{
-    "id": 3,
-    "title": "Deployment",
-    "description": "Deploy application on Render",
-    "dateTime" :"11-06-2026"
-}
+def task_helper(task) -> dict:
+    return {
+        "id": str(task["_id"]) if "_id" in task else task.get("id"),
+        "title": task.get("title"),
+        "description": task.get("description"),
+        
+    }
 
-]
-
-# GET All Tasks
+# 1. GET All Tasks 
 @app.get("/tasks")
 def get_tasks():
-    print(tasks)
-    return tasks
+    db_tasks = []
 
-# GET Single Task
-@app.get("/tasks/{task_id}")
-def get_task(task_id: int):
-    for task in tasks:
-        if task["id"] == task_id:
-            return task
-    raise HTTPException(status_code=404, detail="Task not found")
+    for task in tasks_collection.find():
+        
+        task["id"] = str(task["_id"])
+        del task["_id"] 
+        db_tasks.append(task)
+    return db_tasks
 
-# POST Task
+# 2. POST Task
 @app.post("/tasks")
 def create_task(task: dict):
-    tasks.append(task)
+    result = tasks_collection.insert_one(task)
+    
+    
+    task["id"] = str(result.inserted_id)
+    if "_id" in task: del task["_id"] 
+        
     return {
-        "message": "Task created successfully",
+        "message": "Task created successfully in MongoDB Atlas!",
         "task": task
     }
 
-# PUT Task
-@app.put("/tasks/{task_id}")
-def update_task(task_id: int, updated_task: dict):
-    for index, task in enumerate(tasks):
-        if task["id"] == task_id:
-            tasks[index] = updated_task
-            return {
-                "message": "Task updated successfully"
-            }
-    raise HTTPException(status_code=404, detail="Task not found")
-
-# DELETE Task
+# 3. DELETE Task 
+  
 @app.delete("/tasks/{task_id}")
-def delete_task(task_id: int):
-    for index, task in enumerate(tasks):
-        if task["id"] == task_id:
-            deleted = tasks.pop(index)
-            return {
-                "message": "Task deleted successfully",
-                "task": deleted
-            }
-    raise HTTPException(status_code=404, detail="Task not found")
+def delete_task(task_id: str):  
+    try:
+        result = tasks_collection.delete_one({"_id": ObjectId(task_id)})
+        
+        if result.deleted_count == 1:
+            return {"message": "Task deleted successfully from MongoDB Atlas"}
+            
+        raise HTTPException(status_code=404, detail="Task not found")
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid ObjectId format")

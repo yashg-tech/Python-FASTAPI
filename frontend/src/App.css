@@ -5,9 +5,7 @@ body{
   padding:0;
   background-color: #f4f7fc;
   font-family: Arial, Helvetica, sans-serif;
-  
-  
-  
+
 }
 
 .container{
@@ -15,11 +13,11 @@ body{
   max-width: 700px;
   margin: 40px auto;
 }
-
 h1 {
   text-align: center;
-  color:#376fa6;
+  color:#4985c1;
   justify-content: center;
+  
 }
 
 .card {

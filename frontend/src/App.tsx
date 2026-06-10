@@ -75,7 +75,7 @@ const [newTask, setNewTask] = useState({
     const handleEdit = (task: Task) => {
   setEditingTask(task);
   setNewTask(task);
-  setShow(true);
+  setShowForm(true);
 };
 
 const updateTask = async () => {
@@ -107,6 +107,20 @@ const deleteTask = async (id: number) => {
   const data = await res.json();
 
   setTasks(data);
+};
+
+const formatDate = (dateString: string) => {
+  if (!dateString) return "";
+  
+  // Agar date '2023-05-02' format mein hai, toh use '-' se split karo
+  const [year, month, day] = dateString.split("-");
+  
+  // Agar split sahi se hua hai toh 'DD-MM-YYYY' format return karo
+  if (year && month && day) {
+    return `${day}-${month}-${year}`;
+  }
+  
+  return dateString; // Fallback agar format alag ho
 };
 
     return (
@@ -228,8 +242,8 @@ const deleteTask = async (id: number) => {
           <div className ="card" key={task.id}>
             <h2>{task.title}</h2>
             <p>{task.description}</p>
-            <p className="date">{task.dateTime}</p>
-            
+            <p className="date">{formatDate(task.dateTime)}</p>
+
              <div className="btn-group">
   <Button
     variant="warning"
@@ -237,7 +251,7 @@ const deleteTask = async (id: number) => {
   >
     Update
   </Button>
-
+  
   <Button
     variant="danger"
     onClick={() => deleteTask(task.id)}
