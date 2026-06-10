@@ -8,6 +8,8 @@ db = client["todo_db"]
 
 tasks_collection = db["tasks"]
 
+users_collection = db["users"]
+
 
 try:
     client.admin.command("ping")
