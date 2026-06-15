@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Form from "react-bootstrap/Form";
+import '../App.css'; 
 
 interface LoginProps {
   onLoginSuccess: (userId: string) => void;
@@ -28,37 +29,38 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
         setError(data.detail || "Invalid Credentials");
         return;
       }
+            localStorage.setItem("userId",data.user_id);
+            localStorage.setItem("token",data.access_token);
+           localStorage.setItem("role",data.role);
 
-      if (data.user_id) {
-        localStorage.setItem("userId", data.user_id);
-        onLoginSuccess(data.user_id);
-      }
-    } catch (err) {
+        onLoginSuccess(data.user_id); }
+        
+        catch (err) {
       setError("Cannot connect to backend server.");
     }
   };
 
   return (
-    <div className="auth-container" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", backgroundColor: "#1e6091" }}>
-      <div className="auth-card" style={{ backgroundColor: "#ffffff", padding: "30px", borderRadius: "12px", boxShadow: "0px 8px 24px rgba(0,0,0,0.2)", width: "100%", maxWidth: "400px", textAlign: "center" }}>
+    <div className="auth-container">
+      <div className="auth-card">
         
-        {/* Sliding Tabs Layout */}
-        <div className="auth-tabs" style={{ display: "flex", borderRadius: "8px", overflow: "hidden", marginBottom: "25px", border: "1px solid #ddd" }}>
-          <button style={{ flex: 1, padding: "10px", border: "none", cursor: "default", fontWeight: "bold", backgroundColor: "#1a365d", color: "#fff" }}>
+    
+        <div className="auth-tabs">
+          <button className="auth-tab-btn auth-tab-active" style={{ cursor: "default" }}>
             Login
           </button>
-          <button onClick={onSwitchToSignup} style={{ flex: 1, padding: "10px", border: "none", cursor: "pointer", fontWeight: "bold", backgroundColor: "#f8f9fa", color: "#333" }}>
+          <button onClick={onSwitchToSignup} className="auth-tab-btn auth-tab-inactive">
             Signup
           </button>
         </div>
 
-        <h2 style={{ marginBottom: "20px", color: "#333" }}>Login Form</h2>
+        <h2 className="auth-title">Login Form</h2>
         
-        <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-          <Form.Control type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: "12px" }} />
-          <Form.Control type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: "12px" }} />
+        <form onSubmit={handleLogin} className="auth-form">
+          <Form.Control type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} required className="auth-input" />
+          <Form.Control type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required className="auth-input" />
           
-          <button type="submit" style={{ padding: "12px", backgroundColor: "#1a365d", color: "#fff", border: "none", borderRadius: "6px", fontWeight: "bold", cursor: "pointer", marginTop: "10px" }}>
+          <button type="submit" className="auth-submit-btn">
             Login
           </button>
         </form>

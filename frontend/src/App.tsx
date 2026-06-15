@@ -5,6 +5,9 @@ import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
+import Admin from "./pages/Admin";
+
+
 
 
 interface Task {
@@ -42,6 +45,22 @@ function App() {
   }, [userId]);
 
   const addTask = async () => {
+
+    if (!newTask.title.trim()) {
+  alert("Title is required");
+  return;
+}
+
+if (!newTask.description.trim()) {
+  alert("Description is required");
+  return;
+}
+
+if (!newTask.dateTime) {
+  alert("Date is required");
+  return;
+}
+
     if (!userId) return;
     const task = { title: newTask.title, description: newTask.description, dateTime: newTask.dateTime, user_id: userId };
 
@@ -101,7 +120,7 @@ function App() {
     return dateString;
   };
 
-  // --- CONDITIONAL RENDERING ---
+
   if (!userId) {
     return authView === "login" ? (
       <Login onLoginSuccess={(id) => setUserId(id)} onSwitchToSignup={() => setAuthView("signup")} />
@@ -109,13 +128,29 @@ function App() {
       <Signup onSwitchToLogin={() => setAuthView("login")} />
     );
   }
+   const role = localStorage.getItem("role")
+
+    if(role==="admin"){
+      return <Admin/>
+    }
+  
+
 
   return (
     <div className="container">
       <div className="header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
         <h1>My Tasks</h1>
         <div style={{ display: "flex", gap: "10px" }}>
-          <button className="addBtn" onClick={() => { setEditingTask(null); setShow(true); }}>+ Add Task</button>
+          <button className="addBtn"onClick={() => {
+  setEditingTask(null);
+  setNewTask({
+    id: "",
+    title: "",
+    description: "",
+    dateTime: "",
+  });
+  setShow(true);
+}}>+ Add Task</button>
           <Button variant="danger" onClick={handleLogout}>Logout</Button>
         </div>
       </div>
@@ -160,8 +195,11 @@ function App() {
                 Delete
 
               </Button>
+
+              
             </div>
           </div>
+          
         ))
       )}
     </div>
