@@ -13,6 +13,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
   const [error, setError] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
+  
     e.preventDefault();
     setError("");
 
@@ -23,7 +24,10 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
         body: JSON.stringify({ email, password }),
       });
 
+      console.log(res.status)
+
       const data = await res.json();
+      console.log(data)
 
       if (!res.ok) {
         setError(data.detail || "Invalid Credentials");
@@ -32,6 +36,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
             sessionStorage.setItem("userId",data.user_id);
             sessionStorage.setItem("token",data.access_token);
             sessionStorage.setItem("refresh_token",data.refresh_token);
+
            sessionStorage.setItem("role",data.role);
 
         onLoginSuccess(data.user_id); }
@@ -61,7 +66,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
           <Form.Control type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} required className="auth-input" />
           <Form.Control type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required className="auth-input" />
           
-          <button type="submit" className="auth-submit-btn">
+          <button  type="submit" className="auth-submit-btn">
             Login
           </button>
         </form>

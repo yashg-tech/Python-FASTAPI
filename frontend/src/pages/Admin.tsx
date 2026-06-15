@@ -23,13 +23,19 @@ function Admin(){
     setUsers(users.filter((user: any) => user.id !== id));
 };
 
-    useEffect(()=> {
-        fetch("http://127.0.0.1:8000/users")
-        .then(res => res.json())
-        .then(data => setUsers(data));
-        
-    },[])
+    useEffect(() => {
 
+  const token = sessionStorage.getItem("token");
+
+  fetch("http://127.0.0.1:8000/users", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((res) => res.json())
+    .then((data) => setUsers(data));
+
+}, []);
     const Viewnotes = async(id:string)=>{
         console.log("Clicked", id);
         
