@@ -9,7 +9,6 @@ import Admin from "./pages/Admin";
 
 
 
-
 interface Task {
   id: string;
   title: string;
@@ -19,7 +18,7 @@ interface Task {
 }
 
 function App() {
-  const [userId, setUserId] = useState<string | null>(localStorage.getItem("userId"));
+  const [userId, setUserId] = useState<string | null>(sessionStorage.getItem("userId"));
   const [authView, setAuthView] = useState<"login" | "signup">("login");
 
   const [show, setShow] = useState(false);
@@ -30,8 +29,21 @@ function App() {
 
   const fetchTasks = async (currentUserId: string) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/tasks?user_id=${currentUserId}`);
+      const res = await fetch(`http://127.0.0.1:8000/tasks?user_id=${currentUserId}`,
+        {
+          headers: { "Content-Type": "application/json" ,
+        "Authorization": `Bearer ${sessionStorage.getItem("token")}`,
+      },
+        }
+        
+      );
+      if (!res.ok) {
+        console.log("Unauthorized");
+        setTasks([]);
+        return;
+      }
       const data = await res.json();
+      console.log(data);
       setTasks(data);
     } catch (err) {
       console.log("Error fetching tasks:", err);
@@ -66,7 +78,9 @@ if (!newTask.dateTime) {
 
     const res = await fetch("http://127.0.0.1:8000/tasks", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" ,
+       Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      },
       body: JSON.stringify(task),
     });
 
@@ -79,7 +93,7 @@ if (!newTask.dateTime) {
 
   const handleEdit = (task: Task) => {
     setEditingTask(task);
-    setNewTask({ id: task.id, title: task.title, description: task.description, dateTime: task.dateTime });
+    setNewTask({ id: task._id, title: task.title, description: task.description, dateTime: task.dateTime });
     setShow(true);
   };
 
@@ -89,7 +103,9 @@ if (!newTask.dateTime) {
 
     await fetch(`http://127.0.0.1:8000/tasks/${newTask.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" ,
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      },
       body: JSON.stringify(updatedData),
     });
 
@@ -103,12 +119,21 @@ if (!newTask.dateTime) {
     if (!userId) return;
     if (!window.confirm("Delete this task?")) return;
 
-    await fetch(`http://127.0.0.1:8000/tasks/${id}`, { method: "DELETE" });
+    await fetch(`http://127.0.0.1:8000/tasks/${id}`, { method: "DELETE",
+      headers: { "Content-Type": "application/json" ,
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      },
+     });
+    
+    
     fetchTasks(userId);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("userId");
+    sessionStorage.removeItem("userId");
+    sessionStorage.removeItem("token");
+        sessionStorage.removeItem("role");
+        sessionStorage.removeItem("refresh_token");
     setUserId(null);
     setTasks([]);
   };
@@ -128,13 +153,11 @@ if (!newTask.dateTime) {
       <Signup onSwitchToLogin={() => setAuthView("login")} />
     );
   }
-   const role = localStorage.getItem("role")
+   const role = sessionStorage.getItem("role")
 
     if(role==="admin"){
       return <Admin/>
     }
-  
-
 
   return (
     <div className="container">
@@ -176,7 +199,7 @@ if (!newTask.dateTime) {
         <p style={{ marginTop: "20px", textAlign: "center", color: "gray" }}>No tasks found for your account.</p>
       ) : (
         tasks.map((task) => (
-          <div className="card" key={task.id}>
+          <div className="card" key={task._id}>
             <h2>{task.title}</h2>
             <p>{task.description}</p>
             <p className="date">{formatDate(task.dateTime)}</p>
@@ -191,7 +214,7 @@ if (!newTask.dateTime) {
 
 
               <Button variant="danger" 
-              onClick={() => deleteTask(task.id)}>
+              onClick={() => deleteTask(task._id)}>
                 Delete
 
               </Button>

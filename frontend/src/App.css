@@ -232,7 +232,7 @@ body{
 }
 
 .delete-btn{
-    background:#dc3545;
+    background:#d61f32;
     color:white;
     border:none;
     padding:10px 15px;
@@ -241,7 +241,7 @@ body{
 }
 
 .delete-btn:hover{
-    background:#b02a37;
+    background:#eb3749;
 }
 
 .view-btn{

@@ -1,9 +1,11 @@
 from fastapi import FastAPI, HTTPException
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from bson import ObjectId  
 from database import tasks_collection, users_collection
 from typing import Optional
-from jose import JWTError,jwt
+from jose import jwt,JWTError
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
@@ -13,6 +15,17 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+
 
 
 app = FastAPI()
@@ -25,22 +38,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def create_access_token(data: dict):
+
+
+def create_access_token(data: dict, expires_delta = None):
     to_encode = data.copy()
 
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
+    if expires_delta:
+     expire = datetime.utcnow() + expires_delta
+    else:
+     expire = datetime.utcnow() + timedelta(minutes = ACCESS_TOKEN_EXPIRE_MINUTES)
 
+    to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
         to_encode,
         SECRET_KEY,
-        algorithm=ALGORITHM
-    
+        algorithm = ALGORITHM
     )
     return encoded_jwt
+    
+
+def create_refresh_token(data:dict):
+    return create_access_token(data = data,
+      expires_delta = timedelta(days = 7))
+
+
+
 
 @app.get("/users")
-def get_users():
+def get_users(current_user:dict = Depends(get_current_user)):
 
     users = []
 
@@ -84,15 +109,46 @@ def login(login_data: dict):
             "email": user["email"]
         }
     )
+    refresh_token = create_refresh_token(
+        data={
+            "user_id":str(user["_id"])
+        }
+    )
         
     return {
         "message": "Login successful",
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer",
         "user_id": str(user["_id"]),
         "role": user.get("role", "user")
     
     }
+
+
+@app.post("/refresh_token")
+def refresh_token(data: dict):
+    token = data["refresh_token"]
+
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+         )
+        new_access_token = create_access_token(
+            data={
+                "user_id": payload["user_id"],
+            
+            }
+        )
+        return{
+            "access_token":new_access_token
+        }
+    except JWTError:
+     raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+
 
 
 @app.get("/admin/tasks/{id}")
@@ -107,21 +163,20 @@ def get_user_tasks(id: str):
 
 
 @app.get("/tasks")
-def get_tasks(user_id: Optional[str] = None):
-    db_tasks = []
-    
-    
-    query = {"user_id": user_id} if user_id else {}
-
-    for task in tasks_collection.find(query):
-        task["id"] = str(task["_id"])
-        del task["_id"] 
-        db_tasks.append(task)
-    return db_tasks
+def get_tasks(
+    user_id: str,
+    current_user:dict = Depends(get_current_user)
+):
+    tasks= list(tasks_collection.find({"user_id": user_id}))
+    for task in  tasks:
+        task["_id"] = str(task["_id"])
+    return tasks
+   
 
 
 @app.post("/tasks")
 def create_task(task: dict):
+    current_user:dict = Depends(get_current_user)
     if "user_id" not in task:
         raise HTTPException(status_code=400, detail="User ID is required (Foreign Key missing)")
         
@@ -136,9 +191,27 @@ def create_task(task: dict):
         "task": task
     }
 
+@app.put("/tasks/{task_id}")
+def update_task(task_id: str, task: dict):
+    result = tasks_collection.update_one(
+        {"_id": ObjectId(task_id)},
+        {"$set": {
+            "title": task["title"],
+            "description": task["description"],
+            "dateTime": task["dateTime"],
+            "user_id": task["user_id"]
+        }}
+    )
+
+    if result.modified_count == 1:
+        return {"message": "Task updated successfully"}
+
+    raise HTTPException(status_code=404, detail="Task not found")
+
 # DELETE Task 
 @app.delete("/tasks/{task_id}")
 def delete_task(task_id: str):  
+    current_user:dict = Depends(get_current_user)
     try:
         result = tasks_collection.delete_one({"_id": ObjectId(task_id)})
         if result.deleted_count == 1:
@@ -150,6 +223,7 @@ def delete_task(task_id: str):
     
 @app.delete("/users/{id}")
 def delete_user(id: str):
+    current_user:dict = Depends(get_current_user)
     from bson import ObjectId
 
     user = users_collection.find_one({"_id": ObjectId(id)})
@@ -165,3 +239,4 @@ def delete_user(id: str):
     tasks_collection.delete_many({"user_id": id})
 
     return {"message": "User deleted"}
+

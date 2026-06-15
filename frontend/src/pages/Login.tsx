@@ -29,9 +29,10 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
         setError(data.detail || "Invalid Credentials");
         return;
       }
-            localStorage.setItem("userId",data.user_id);
-            localStorage.setItem("token",data.access_token);
-           localStorage.setItem("role",data.role);
+            sessionStorage.setItem("userId",data.user_id);
+            sessionStorage.setItem("token",data.access_token);
+            sessionStorage.setItem("refresh_token",data.refresh_token);
+           sessionStorage.setItem("role",data.role);
 
         onLoginSuccess(data.user_id); }
         

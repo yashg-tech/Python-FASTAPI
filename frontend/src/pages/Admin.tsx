@@ -1,9 +1,14 @@
 import { useEffect,useState } from "react";
+import Modal from "react-bootstrap/Modal";
+import Button from "react-bootstrap/Button";
+import Form from "react-bootstrap/Form";
 
 function Admin(){
     const [users,setUsers] = useState([]);
 
-    const [notes,setNotes] = useState([])
+    const [notes,setNotes] = useState([]);
+
+    const [showAddUser, setShowAddUser] = useState(false);
 
    const deleteUser = async (id: string) => {
 
@@ -39,22 +44,87 @@ function Admin(){
     };
 
     const handleLogout = () => {
-        localStorage.removeItem("userId");
-        localStorage.removeItem("token");
-        localStorage.removeItem("role");
+      sessionStorage.clear();
+
+        sessionStorage.removeItem("userId");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("role");
+        sessionStorage.removeItem("refresh_token");
 
         window.location.reload();
     };
+const deleteTask = async (id: string) => {
+  if (!window.confirm("Delete this task?")) return;
 
+  await fetch(`http://127.0.0.1:8000/tasks/${id}`, {
+    method: "DELETE",
+  });
+
+  setNotes(notes.filter((note: any) => note._id !== id));
+};
+
+const [newUser, setNewUser] = useState({
+  email: "",
+  password: "",
+  role: "user",
+});
+
+const addUser = async () => {
+
+  if (!newUser.email.trim()) {
+    alert("Email Required");
+    return;
+  }
+
+  if (!newUser.password.trim()) {
+    alert("Password Required");
+    return;
+  }
+
+  const res = await fetch("http://127.0.0.1:8000/signup", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(newUser),
+  });
+
+  if (res.ok) {
+    alert("User Added Successfully");
+
+    setShowAddUser(false);
+
+    setNewUser({
+      email: "",
+      password: "",
+      role: "user",
+    });
+
+    window.location.reload();
+  }
+};
 
 return(
         <div className="admin-container">
   <h1>Admin Dashboard</h1>
 
-  <button className="logout-btn" onClick={handleLogout}>
+ <div style={{ display: "flex", justifyContent: "center", gap: "10px",   marginBottom: "30px", }}>
+  
+  <button
+    className="btn btn-success"
+    onClick={() => setShowAddUser(true)}
+  >
+    + Add User
+  </button>
+
+  <button
+    className="btn btn-danger"
+    onClick={handleLogout}
+  >
     Logout
   </button>
 
+</div>
   {users?.map((user:any) => (
     <div className="user-card" key={user.id}>
       <h3>{user.email}</h3>
@@ -92,11 +162,67 @@ return(
         
         <h3 style={{ margin: "0 0 10px 0", color: "#333" }}>{note.title}</h3>
         <p style={{ margin: 0, color: "#666" }}>{note.description}</p>
-      </div>
+
+        <button
+  className="btn btn-danger"
+  onClick={() => deleteTask(note._id)}
+>
+    🗑 Delete Task
+</button>
+
+      </div>   
     ))
   )}
 </div>
+<Modal show={showAddUser} onHide={() => setShowAddUser(false)}>
+  <Modal.Header closeButton>
+    <Modal.Title>Add User</Modal.Title>
+  </Modal.Header>
+
+  <Modal.Body>
+
+    <Form.Control
+      type="email"
+      placeholder="Email"
+      value={newUser.email}
+      onChange={(e) =>
+        setNewUser({ ...newUser, email: e.target.value })
+      }
+    />
+
+    <br />
+
+    <Form.Control
+      type="password"
+      placeholder="Password"
+      value={newUser.password}
+      onChange={(e) =>
+        setNewUser({ ...newUser, password: e.target.value })
+      }
+    />
+
+  </Modal.Body>
+
+  <Modal.Footer>
+
+    <Button
+      variant="secondary"
+      onClick={() => setShowAddUser(false)}
+    >
+      Cancel
+    </Button>
+
+    <Button
+      variant="primary"
+      onClick={addUser}
+    >
+      Add User
+    </Button>
+
+  </Modal.Footer>
+</Modal>
 </div>
+
 
 )
 }
