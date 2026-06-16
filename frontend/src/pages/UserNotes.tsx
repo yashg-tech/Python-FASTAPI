@@ -5,34 +5,38 @@ function UserNotes() {
     
 
     const { id } = useParams();
-  
-    
+   
+     const [userName, setUserName] = useState("");
      const [tasks, setTasks] = useState<any[]>([]);
 
 
-    useEffect(() => {
-
+   useEffect(() => {
     fetch(`http://127.0.0.1:8000/admin/user/${id}`)
-    .then(res => res.json())
-    .then(data => setTasks(data));
-
+        .then(res => res.json())
+        .then(data => {
+            setUserName(data.user);
+            setTasks(data.tasks);
+        });
 }, [id]);
+const sendEmail = async (taskId: string) => {
+     
+    const res = await fetch(
+        `http://127.0.0.1:8000/send-warning/${taskId}`,
+        {
+            method: "POST",
+        }
+    );
 
-const deleteTask = async (id: string) => {
-  if (!window.confirm("Delete this task?")) return;
-
-  await fetch(`http://127.0.0.1:8000/tasks/${id}`, {
-    method: "DELETE",
-  });
-
-  setTasks(tasks.filter((task) => task._id !== id));
+    const data = await res.json();
+    alert(data.message);
 };
+
 
 
     return (
         <div>
 
-            <h1>User ID : {id}</h1>
+            <h1>{userName}</h1>
 
             {tasks.length === 0 ? (
                 <h3>No Tasks Found</h3>
@@ -43,11 +47,12 @@ const deleteTask = async (id: string) => {
                         <p>{task.description}</p>
                         <p>{task.dateTime}</p>
                                 <button
-  className="btn btn-danger"
-  onClick={() => deleteTask(task._id)}
+    className="btn btn-warning"
+    onClick={() => sendEmail(task._id)}
 >
-    🗑 Delete Task
+    📧 Send Warning
 </button>
+  
     
                         <hr />
 

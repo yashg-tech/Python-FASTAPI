@@ -76,6 +76,31 @@ def get_users(current_user:dict = Depends(get_current_user)):
         })
     
     return users
+@app.post("/send-warning/{task_id}")
+def send_warning(task_id: str):
+
+    task = tasks_collection.find_one({"_id": ObjectId(task_id)})
+
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    user = users_collection.find_one({"_id": ObjectId(task["user_id"])})
+
+    print(f"""
+    ============================
+    WARNING SENT
+    To: {user['email']}
+    Subject: Task Warning
+
+    Your task violates our policy.
+    Please delete it immediately.
+    Failure to do so may result in strict action.
+    ============================
+    """)
+
+    return {
+        "message": f"Warning sent successfully to {user['email']}"
+    }
 
 
 @app.post("/signup")
@@ -125,8 +150,9 @@ def login(login_data: dict):
 
 @app.get("/admin/user/{user_id}")
 def get_user_tasks_by_user(user_id: str):
-
-    print("Received ID:", user_id)
+    user = users_collection.find_one(
+    {"_id": ObjectId(user_id)}
+)
 
     tasks = list(tasks_collection.find({"user_id": user_id}))
 
@@ -135,7 +161,10 @@ def get_user_tasks_by_user(user_id: str):
     for task in tasks:
         task["_id"] = str(task["_id"])
 
-    return tasks
+    return {
+        "user": user["email"],   # ya user["name"] agar name field hai
+        "tasks": tasks
+    }
 
 
 @app.post("/refresh_token")
