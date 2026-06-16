@@ -62,8 +62,6 @@ def create_refresh_token(data:dict):
       expires_delta = timedelta(days = 7))
 
 
-
-
 @app.get("/users")
 def get_users(current_user:dict = Depends(get_current_user)):
 
@@ -124,6 +122,20 @@ def login(login_data: dict):
         "role": user.get("role", "user")
     
     }
+
+@app.get("/admin/user/{user_id}")
+def get_user_tasks_by_user(user_id: str):
+
+    print("Received ID:", user_id)
+
+    tasks = list(tasks_collection.find({"user_id": user_id}))
+
+    print("Tasks =", tasks)   # <-- ye line add karo
+
+    for task in tasks:
+        task["_id"] = str(task["_id"])
+
+    return tasks
 
 
 @app.post("/refresh_token")

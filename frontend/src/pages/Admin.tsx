@@ -2,6 +2,7 @@ import { useEffect,useState } from "react";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
+import { useNavigate } from "react-router-dom";
 
 function Admin(){
     const [users,setUsers] = useState([]);
@@ -9,6 +10,7 @@ function Admin(){
     const [notes,setNotes] = useState([]);
 
     const [showAddUser, setShowAddUser] = useState(false);
+    const navigate = useNavigate();
 
    const deleteUser = async (id: string) => {
 
@@ -59,15 +61,6 @@ function Admin(){
 
         window.location.reload();
     };
-const deleteTask = async (id: string) => {
-  if (!window.confirm("Delete this task?")) return;
-
-  await fetch(`http://127.0.0.1:8000/tasks/${id}`, {
-    method: "DELETE",
-  });
-
-  setNotes(notes.filter((note: any) => note._id !== id));
-};
 
 const [newUser, setNewUser] = useState({
   email: "",
@@ -123,6 +116,8 @@ return(
     + Add User
   </button>
 
+
+
   <button
     className="btn btn-danger"
     onClick={handleLogout}
@@ -143,23 +138,17 @@ return(
         >
           Delete User
         </button>
-
-        <button
-          className="view-btn"
-          onClick={() => Viewnotes(user.id)}
-        >
-          View Notes
-        </button>
+          <button
+    onClick={() => navigate(`/admin/user/${user.id}`)}
+>
+    View Notes
+</button>
 
       </div>
-      
-
     </div>
   ))}
   
-<div className="notes-container" style={{ marginTop: "30px", padding: "20px", borderTop: "2px solid #ccc" }}>
-  <h2>User Tasks</h2>
-  
+
   {notes.length === 0 ? (
     <p></p>
   ) : (
@@ -169,17 +158,10 @@ return(
         <h3 style={{ margin: "0 0 10px 0", color: "#333" }}>{note.title}</h3>
         <p style={{ margin: 0, color: "#666" }}>{note.description}</p>
 
-        <button
-  className="btn btn-danger"
-  onClick={() => deleteTask(note._id)}
->
-    🗑 Delete Task
-</button>
-
       </div>   
     ))
   )}
-</div>
+
 <Modal show={showAddUser} onHide={() => setShowAddUser(false)}>
   <Modal.Header closeButton>
     <Modal.Title>Add User</Modal.Title>
