@@ -59,7 +59,7 @@ def create_access_token(data: dict, expires_delta = None):
 
 def create_refresh_token(data:dict):
     return create_access_token(data = data,
-      expires_delta = timedelta(days = 7))
+      expires_delta = timedelta(hours = 1))
 
 
 @app.get("/users")
