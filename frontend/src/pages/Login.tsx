@@ -1,16 +1,19 @@
 import React, { useState } from "react";
 import Form from "react-bootstrap/Form";
 import '../App.css'; 
+import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface LoginProps {
   onLoginSuccess: (userId: string) => void;
   onSwitchToSignup: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
+const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
   
@@ -19,7 +22,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
 
     try {
       const res = await fetch("http://127.0.0.1:8000/login", {
-        method: "POST",
+        method: "POST", 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
@@ -37,9 +40,16 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
             sessionStorage.setItem("token",data.access_token);
             sessionStorage.setItem("refresh_token",data.refresh_token);
 
+if (data.role === "admin") {
+  navigate("/admin");
+} else {
+  navigate("/tasks");
+}
+
            sessionStorage.setItem("role",data.role);
 
         onLoginSuccess(data.user_id); }
+        
         
         catch (err) {
       setError("Cannot connect to backend server.");
@@ -55,9 +65,13 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
           <button className="auth-tab-btn auth-tab-active" style={{ cursor: "default" }}>
             Login
           </button>
-          <button onClick={onSwitchToSignup} className="auth-tab-btn auth-tab-inactive">
-            Signup
-          </button>
+          <Link
+  to="/signup"
+  className="auth-tab-btn auth-tab-inactive"
+  style={{ textDecoration: "none" }}
+>
+  Signup
+</Link>
         </div>
 
         <h2 className="auth-title">Login Form</h2>

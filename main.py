@@ -171,6 +171,7 @@ def get_tasks(
     for task in  tasks:
         task["_id"] = str(task["_id"])
     return tasks
+
    
 
 
@@ -239,4 +240,6 @@ def delete_user(id: str):
     tasks_collection.delete_many({"user_id": id})
 
     return {"message": "User deleted"}
+
+
 

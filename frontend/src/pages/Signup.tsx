@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Form from "react-bootstrap/Form";
 import "../App.css";
+import { Link } from "react-router-dom";
 
 interface SignupProps {
   onSwitchToLogin: () => void;
@@ -46,9 +47,13 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
         
         {/* Sliding Tabs Layout using CSS Classes */}
         <div className="auth-tabs">
-          <button onClick={onSwitchToLogin} className="auth-tab-btn auth-tab-inactive">
-            Login
-          </button>
+          <Link
+  to="/"
+  className="auth-tab-btn auth-tab-inactive"
+  style={{ textDecoration: "none" }}
+>
+  Login
+</Link>
           <button className="auth-tab-btn auth-tab-active" style={{ cursor: "default" }}>
             Signup
           </button>
